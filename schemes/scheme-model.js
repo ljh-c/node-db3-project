@@ -5,7 +5,9 @@ function find() {
 }
 
 function findById(id) {
-  return db('schemes').where({ id }).first()
+  return db('schemes')
+    .where({ id })
+    .first()
     .then(scheme => {
       return scheme ? scheme : null;
     });
@@ -20,24 +22,39 @@ function findSteps(id) {
 }
 
 function add(scheme) {
-  return db('schemes').insert(scheme)
+  return db('schemes')
+    .insert(scheme)
     .then(([id]) => {
       return findById(id);
     });
 }
 
 function update(changes, id) {
-  return db('schemes').where({ id }).update(changes)
+  return db('schemes')
+    .where({ id })
+    .update(changes)
     .then(() => {
       return findById(id);
     });
 }
 
 function remove(id) {
-  return findById(id).then(async scheme => {
+  return findById(id)
+    .then(async scheme => {
     await db('schemes').where({ id }).del();
     return scheme;
-  });
+    });
+}
+
+async function addStep(step, scheme_id) {
+  const steps = await findSteps(scheme_id);
+  
+  step.scheme_id = scheme_id;
+  step.step_number = steps.length;
+
+  const [id] = await db('steps').insert(step);
+
+  return db('steps').where({ id }).first();
 }
 
 module.exports = {
@@ -46,5 +63,6 @@ module.exports = {
   findSteps,
   add,
   update,
-  remove
+  remove,
+  addStep
 };
